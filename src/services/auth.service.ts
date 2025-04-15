@@ -24,7 +24,12 @@ authAxios.interceptors.request.use(request => {
 authAxios.interceptors.response.use(
   response => response,
   error => {
-    // Solo eliminamos el token si el servidor específicamente nos dice que expiró
+    console.error('Error en la petición:', {
+      status: error.response?.status,
+      message: error.response?.data?.message,
+      url: error.config?.url
+    });
+    
     if (error.response?.status === 401 && 
         error.response?.data?.message?.toLowerCase().includes('expired')) {
       localStorage.removeItem('token');
@@ -35,23 +40,76 @@ authAxios.interceptors.response.use(
 
 export const authService = {
   login: async (email: string, password: string): Promise<LoginResponse> => {
-    const response = await authAxios.post('/auth/login', { email, password });
-    if (response.data.token) {
-      localStorage.setItem('token', response.data.token);
+    try {
+      const response = await authAxios.post('/auth/login', { email, password });
+      console.log('Respuesta completa del login:', response.data);
+      
+      // La respuesta viene en response.data.data
+      const { data } = response.data;
+      
+      return {
+        token: data.token,
+        user: {
+          id: data._id,
+          name: data.name,
+          email: data.email,
+          createdAt: data.createdAt || new Date().toISOString(),
+          updatedAt: data.updatedAt || new Date().toISOString()
+        }
+      };
+    } catch (error) {
+      console.error('Error en login:', error);
+      throw error;
     }
-    return response.data;
   },
 
   register: async (name: string, email: string, password: string): Promise<RegisterResponse> => {
-    const response = await authAxios.post('/auth/register', { name, email, password });
-    if (response.data.token) {
-      localStorage.setItem('token', response.data.token);
+    try {
+      const response = await authAxios.post('/auth/register', { name, email, password });
+      console.log('Respuesta completa del registro:', response.data);
+      
+      // La respuesta viene en response.data.data
+      const { data } = response.data;
+      
+      return {
+        token: data.token,
+        user: {
+          id: data._id,
+          name: data.name,
+          email: data.email,
+          createdAt: data.createdAt || new Date().toISOString(),
+          updatedAt: data.updatedAt || new Date().toISOString()
+        }
+      };
+    } catch (error) {
+      console.error('Error en registro:', error);
+      throw error;
     }
-    return response.data;
   },
 
   verifyToken: async (token: string): Promise<{ user: User }> => {
-    const response = await authAxios.get('/auth/verify');
-    return response.data;
+    try {
+      const response = await axios.get(`${API_URL}/auth/verify`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      console.log('Respuesta de verificación:', response.data);
+      
+      const { data } = response.data;
+      return {
+        user: {
+          id: data._id,
+          name: data.name,
+          email: data.email,
+          createdAt: data.createdAt || new Date().toISOString(),
+          updatedAt: data.updatedAt || new Date().toISOString()
+        }
+      };
+    } catch (error) {
+      console.error('Error en verificación:', error);
+      throw error;
+    }
   },
 }; 

@@ -1,6 +1,6 @@
 import axios from 'axios';
 import type { FuelRecord } from '../types';
-import type { Api, VehicleData, EfficiencyRecord } from './types';
+import type { Api, EfficiencyRecord } from './types';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
@@ -153,28 +153,6 @@ export const fuelService = {
   },
 };
 
-// Servicio para vehículos y eficiencia
-export const vehicleService = {
-  create: async (vehicleData: VehicleData): Promise<VehicleData> => {
-    try {
-      const response = await fetch(`${API_URL}/vehicles`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(vehicleData),
-      });
-
-      if (!response.ok) {
-        throw new Error('Error al crear vehículo');
-      }
-
-      return response.json();
-    } catch (error) {
-      console.error('Error al crear vehículo:', error);
-      throw error;
-    }
-  },
-};
-
 export const efficiencyService = {
   createRecord: async (recordData: EfficiencyRecord): Promise<EfficiencyRecord> => {
     try {
@@ -195,22 +173,6 @@ export const efficiencyService = {
     }
   },
 };
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-}
-
-interface LoginResponse {
-  token: string;
-  user: User;
-}
-
-interface RegisterResponse {
-  token: string;
-  user: User;
-}
 
 // Implementación del objeto api
 export const api: Api = {
@@ -264,22 +226,6 @@ export const api: Api = {
 
       if (!response.ok) {
         throw new Error('Token inválido');
-      }
-
-      return response.json();
-    },
-  },
-
-  vehicles: {
-    create: async (vehicleData) => {
-      const response = await fetch(`${API_URL}/vehicles`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(vehicleData),
-      });
-
-      if (!response.ok) {
-        throw new Error('Error al crear vehículo');
       }
 
       return response.json();

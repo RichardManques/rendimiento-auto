@@ -16,15 +16,6 @@ export interface RegisterResponse {
   user: User;
 }
 
-export interface VehicleData {
-  brand: string;
-  model: string;
-  year: number;
-  fuelType: string;
-  transmission: string;
-  engineSize: number;
-}
-
 export interface EfficiencyRecord {
   startKm: number;
   endKm: number;
@@ -37,10 +28,7 @@ export interface Api {
   auth: {
     login: (email: string, password: string) => Promise<LoginResponse>;
     register: (name: string, email: string, password: string) => Promise<RegisterResponse>;
-    verifyToken: (token: string) => Promise<{ user: User }>;
-  };
-  vehicles: {
-    create: (vehicleData: VehicleData) => Promise<VehicleData>;
+    verifyToken: (token: string) => Promise<{ valid: boolean }>;
   };
   efficiency: {
     createRecord: (recordData: EfficiencyRecord) => Promise<EfficiencyRecord>;
