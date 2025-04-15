@@ -1,11 +1,14 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 import Navbar from './components/Navbar';
-import RecentRecords from './pages/RecentRecords';
-import FullHistory from './pages/FullHistory';
-import NewRecord from './pages/NewRecord';
+import Home from './pages/Home';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import VehicleRegistration from './pages/VehicleRegistration';
 import FuelEfficiency from './pages/FuelEfficiency';
+import FullHistory from './pages/FullHistory';
+import { AuthProvider } from './contexts/AuthContext';
 
 const theme = createTheme({
   palette: {
@@ -72,23 +75,49 @@ const theme = createTheme({
   }
 });
 
-function App() {
+const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
+  const location = useLocation();
+  
+  // Si hay token, permitimos el acceso. Punto.
+  if (localStorage.getItem('token')) {
+    return <>{children}</>;
+  }
+
+  // Solo si NO hay token, redirigimos al login
+  return <Navigate to="/login" state={{ from: location }} replace />;
+};
+
+const AppRoutes = () => {
+  // Si hay token, mostramos el Navbar
+  const hasToken = !!localStorage.getItem('token');
+
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Router>
-        <div style={{ backgroundColor: theme.palette.background.default, minHeight: '100vh' }}>
-          <Navbar />
-          <Routes>
-            <Route path="/" element={<RecentRecords />} />
-            <Route path="/historial" element={<FullHistory />} />
-            <Route path="/nuevo" element={<NewRecord />} />
-            <Route path="/rendimiento" element={<FuelEfficiency />} />
-          </Routes>
-        </div>
-      </Router>
-    </ThemeProvider>
+    <div style={{ backgroundColor: theme.palette.background.default, minHeight: '100vh' }}>
+      {hasToken && <Navbar />}
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
+        <Route path="/vehicle" element={<PrivateRoute><VehicleRegistration /></PrivateRoute>} />
+        <Route path="/rendimiento" element={<PrivateRoute><FuelEfficiency /></PrivateRoute>} />
+        <Route path="/historial" element={<PrivateRoute><FullHistory /></PrivateRoute>} />
+        <Route path="*" element={<Navigate to="/login" />} />
+      </Routes>
+    </div>
   );
-}
+};
+
+const App = () => {
+  return (
+    <AuthProvider>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Router>
+          <AppRoutes />
+        </Router>
+      </ThemeProvider>
+    </AuthProvider>
+  );
+};
 
 export default App;

@@ -24,28 +24,55 @@ import { fuelService } from '../services/api';
 import LocalGasStationIcon from '@mui/icons-material/LocalGasStation';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import SaveIcon from '@mui/icons-material/Save';
 
 interface TripRecord {
-  startTankKm: number;  // Kilómetros disponibles al inicio
-  endTankKm: number;    // Kilómetros disponibles al final
-  tankFullCost: number; // Costo de llenar el estanque
-  tankFullRange: number; // Autonomía con el estanque lleno
+  userId: string;
+  vehicleId: string;
+  startKm: number;
+  endKm: number;
+  kmConsumed: number;
   drivingStyle: 'suave' | 'normal' | 'agresivo';
   routeType: 'ciudad' | 'carretera' | 'mixta';
   useAC: boolean;
+  efficiency: {
+    base: number;
+    adjusted: number;
+  };
+  cost: {
+    perKm: number;
+    total: number;
+  };
   date: Date;
+  location: {
+    start?: string;
+    end?: string;
+  };
 }
 
 const FuelEfficiency: React.FC = () => {
   const [tripData, setTripData] = useState<TripRecord>({
-    startTankKm: 0,
-    endTankKm: 0,
-    tankFullCost: 62500,
-    tankFullRange: 500,
+    userId: '',
+    vehicleId: '',
+    startKm: 0,
+    endKm: 0,
+    kmConsumed: 0,
     drivingStyle: 'normal',
     routeType: 'mixta',
     useAC: false,
-    date: new Date()
+    efficiency: {
+      base: 0,
+      adjusted: 0
+    },
+    cost: {
+      perKm: 0,
+      total: 0
+    },
+    date: new Date(),
+    location: {
+      start: '',
+      end: ''
+    }
   });
 
   const [efficiency, setEfficiency] = useState<{
@@ -76,16 +103,16 @@ const FuelEfficiency: React.FC = () => {
   const acFactor = 0.9;  // 10% menos rendimiento con AC
 
   const calculateEfficiency = () => {
-    const { startTankKm, endTankKm, drivingStyle, routeType, useAC } = tripData;
+    const { startKm, endKm, drivingStyle, routeType, useAC } = tripData;
     
     // Validaciones básicas
-    if (startTankKm <= endTankKm) {
+    if (startKm <= endKm) {
       setError('Los kilómetros disponibles iniciales deben ser mayores a los finales');
       return;
     }
 
     // Cálculos base
-    const kmConsumed = startTankKm - endTankKm; // Kilómetros consumidos
+    const kmConsumed = startKm - endKm; // Kilómetros consumidos
     
     // Factores de ajuste
     const totalFactor = drivingStyleFactors[drivingStyle] * 
@@ -93,11 +120,26 @@ const FuelEfficiency: React.FC = () => {
                        (useAC ? acFactor : 1.0);
 
     // Rendimiento ajustado según condiciones
-    const adjustedEfficiency = BASE_EFFICIENCY * totalFactor;
+    const baseEfficiency = 18.0; // Rendimiento base en carretera
+    const adjustedEfficiency = baseEfficiency * totalFactor;
     
     // Costo por kilómetro (usando precio de $1,250 por litro)
     const costPerKm = Number((1250 / adjustedEfficiency).toFixed(2));
     const tripCost = Number((kmConsumed * costPerKm).toFixed(2));
+
+    // Actualizar el estado con los nuevos valores
+    setTripData(prev => ({
+      ...prev,
+      kmConsumed,
+      efficiency: {
+        base: baseEfficiency,
+        adjusted: Number(adjustedEfficiency.toFixed(1))
+      },
+      cost: {
+        perKm: costPerKm,
+        total: tripCost
+      }
+    }));
 
     // Mostrar los resultados
     setEfficiency({
@@ -105,9 +147,31 @@ const FuelEfficiency: React.FC = () => {
       costPerKm,
       tripCost,
       adjustedEfficiency: Number(adjustedEfficiency.toFixed(1)),
-      baseEfficiency: BASE_EFFICIENCY
+      baseEfficiency
     });
     setError('');
+  };
+
+  const saveRecord = async () => {
+    try {
+      const response = await fetch('/api/efficiency/records', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(tripData)
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al guardar el registro');
+      }
+
+      const savedRecord = await response.json();
+      console.log('Registro guardado:', savedRecord);
+    } catch (error) {
+      console.error('Error al guardar:', error);
+      setError('Error al guardar el registro');
+    }
   };
 
   const formatCurrency = (amount: number) => {
@@ -159,10 +223,10 @@ const FuelEfficiency: React.FC = () => {
             <Box sx={{ flex: '1 1 calc(50% - 24px)', minWidth: '250px' }}>
               <TextField
                 fullWidth
-                label="Kilómetros Disponibles Inicial"
+                label="Kilómetros Iniciales"
                 type="number"
-                value={tripData.startTankKm}
-                onChange={(e) => setTripData({ ...tripData, startTankKm: Number(e.target.value) })}
+                value={tripData.startKm}
+                onChange={(e) => setTripData({ ...tripData, startKm: Number(e.target.value) })}
                 InputProps={{
                   endAdornment: <Typography color="textSecondary">km</Typography>
                 }}
@@ -172,10 +236,10 @@ const FuelEfficiency: React.FC = () => {
             <Box sx={{ flex: '1 1 calc(50% - 24px)', minWidth: '250px' }}>
               <TextField
                 fullWidth
-                label="Kilómetros Disponibles Final"
+                label="Kilómetros Finales"
                 type="number"
-                value={tripData.endTankKm}
-                onChange={(e) => setTripData({ ...tripData, endTankKm: Number(e.target.value) })}
+                value={tripData.endKm}
+                onChange={(e) => setTripData({ ...tripData, endKm: Number(e.target.value) })}
                 InputProps={{
                   endAdornment: <Typography color="textSecondary">km</Typography>
                 }}
@@ -225,13 +289,22 @@ const FuelEfficiency: React.FC = () => {
             </Box>
           </Box>
 
-          <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
+          <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
             <Button
               variant="contained"
               onClick={calculateEfficiency}
               startIcon={<DirectionsCarIcon />}
             >
               Calcular Rendimiento
+            </Button>
+            <Button
+              variant="contained"
+              color="success"
+              onClick={saveRecord}
+              startIcon={<SaveIcon />}
+              disabled={!efficiency}
+            >
+              Guardar Registro
             </Button>
           </Box>
         </Paper>
