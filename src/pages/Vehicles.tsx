@@ -4,32 +4,18 @@ import {
   Typography,
   Button,
   Card,
-  CardContent,
-  CardActions,
-  IconButton,
-  Tooltip,
-  Chip,
-  useTheme,
   Container,
-  Grid,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  FormHelperText
+  IconButton,
+  alpha,
+  useTheme,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
-import LocalGasStationIcon from '@mui/icons-material/LocalGasStation';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import SettingsIcon from '@mui/icons-material/Settings';
-import SpeedIcon from '@mui/icons-material/Speed';
+import LocalGasStationIcon from '@mui/icons-material/LocalGasStation';
 import { Vehicle } from '../types';
 import { vehicleService } from '../services/vehicleService';
 import VehicleFormDialog from '../components/VehicleFormDialog';
@@ -108,16 +94,48 @@ const Vehicles: React.FC = () => {
 
   return (
     <Container maxWidth="lg">
-      <Box sx={{ p: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-          <Typography variant="h4" component="h1" sx={{ fontWeight: 600 }}>
-            Mis Vehículos
-          </Typography>
+      <Box sx={{ py: 4 }}>
+        <Box sx={{ 
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          mb: 4
+        }}>
+          <Box>
+            <Typography 
+              variant="h4" 
+              sx={{ 
+                fontWeight: 700,
+                color: 'text.primary',
+                mb: 1
+              }}
+            >
+              Mis Vehículos
+            </Typography>
+            <Typography 
+              variant="body1" 
+              sx={{ color: 'text.secondary' }}
+            >
+              Gestiona tu flota de vehículos y monitorea su rendimiento
+            </Typography>
+          </Box>
           <Button
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => handleOpenDialog()}
-            sx={{ borderRadius: 2 }}
+            sx={{
+              borderRadius: 2,
+              py: 1.5,
+              px: 3,
+              backgroundColor: theme.palette.primary.main,
+              fontWeight: 600,
+              textTransform: 'none',
+              boxShadow: 'none',
+              '&:hover': {
+                backgroundColor: theme.palette.primary.dark,
+                boxShadow: '0 8px 16px -4px rgba(25, 118, 210, 0.24)',
+              }
+            }}
           >
             Agregar Vehículo
           </Button>
@@ -136,116 +154,243 @@ const Vehicles: React.FC = () => {
             <Card 
               key={vehicle._id}
               sx={{ 
-                borderRadius: 3,
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                position: 'relative'
+                borderRadius: 2,
+                border: '1px solid',
+                borderColor: theme.palette.divider,
+                backgroundColor: theme.palette.background.paper,
+                transition: 'all 0.2s ease-in-out',
+                '&:hover': {
+                  borderColor: theme.palette.primary.main,
+                  transform: 'translateY(-4px)',
+                  boxShadow: '0 12px 24px -4px rgba(145, 158, 171, 0.12)'
+                }
               }}
             >
-              {vehicle.isDefault && (
-                <Chip
-                  label="Principal"
-                  color="primary"
-                  size="small"
-                  sx={{
-                    position: 'absolute',
-                    top: 16,
-                    right: 16,
-                    fontWeight: 600
-                  }}
-                />
-              )}
-              <CardContent sx={{ flexGrow: 1 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                  <DirectionsCarIcon color="primary" />
-                  <Typography variant="h6" component="div">
-                    {vehicle.brand} {vehicle.model}
-                  </Typography>
+              <Box sx={{ p: 3 }}>
+                <Box sx={{ 
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  mb: 3
+                }}>
+                  <Box
+                    sx={{
+                      backgroundColor: alpha(theme.palette.primary.main, 0.12),
+                      borderRadius: 1.5,
+                      width: 48,
+                      height: 48,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      mr: 2
+                    }}
+                  >
+                    <DirectionsCarIcon sx={{ color: theme.palette.primary.main, fontSize: 28 }} />
+                  </Box>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="h6" sx={{ 
+                      fontWeight: 600,
+                      color: 'text.primary',
+                      mb: 0.5,
+                      lineHeight: 1.2
+                    }}>
+                      {vehicle.brand}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                      {vehicle.model}
+                    </Typography>
+                  </Box>
                 </Box>
 
                 <Box sx={{ 
                   display: 'grid',
                   gridTemplateColumns: 'repeat(2, 1fr)',
-                  gap: 2
+                  gap: 2,
+                  mb: 3
                 }}>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">
-                      <SpeedIcon sx={{ fontSize: 16, mr: 0.5, verticalAlign: 'text-bottom' }} />
-                      Año: {vehicle.year}
+                  <Box sx={{ 
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1
+                  }}>
+                    <CalendarTodayIcon sx={{ 
+                      fontSize: 20,
+                      color: theme.palette.text.secondary
+                    }} />
+                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                      {vehicle.year}
                     </Typography>
                   </Box>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">
-                      <SettingsIcon sx={{ fontSize: 16, mr: 0.5, verticalAlign: 'text-bottom' }} />
+                  <Box sx={{ 
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1
+                  }}>
+                    <SettingsIcon sx={{ 
+                      fontSize: 20,
+                      color: theme.palette.text.secondary
+                    }} />
+                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                       {vehicle.transmission}
                     </Typography>
                   </Box>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">
-                      <LocalGasStationIcon sx={{ fontSize: 16, mr: 0.5, verticalAlign: 'text-bottom' }} />
+                  <Box sx={{ 
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1
+                  }}>
+                    <LocalGasStationIcon sx={{ 
+                      fontSize: 20,
+                      color: theme.palette.text.secondary
+                    }} />
+                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                       {vehicle.fuelType}
                     </Typography>
                   </Box>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">
-                      Motor: {vehicle.engineSize}L
+                  <Box sx={{ 
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}>
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        py: 0.5,
+                        px: 1.5,
+                        borderRadius: 1,
+                        backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                        color: theme.palette.primary.main,
+                        fontWeight: 600
+                      }}
+                    >
+                      {vehicle.engineSize}L
                     </Typography>
                   </Box>
                 </Box>
 
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="body2" color="primary" sx={{ fontWeight: 600 }}>
-                    Consumo:
+                <Box sx={{ 
+                  backgroundColor: alpha(theme.palette.background.default, 0.8),
+                  borderRadius: 2,
+                  p: 2
+                }}>
+                  <Typography 
+                    variant="subtitle2" 
+                    sx={{ 
+                      fontWeight: 600,
+                      mb: 2,
+                      color: 'text.primary'
+                    }}
+                  >
+                    Consumo Promedio
                   </Typography>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mt: 1 }}>
-                    {typeof vehicle.consumption === 'object' ? (
-                      <>
-                        <Typography variant="body2" color="text.secondary">
-                          Ciudad: {vehicle.consumption.city}L/100km
+                  {typeof vehicle.consumption === 'object' && (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                      <Box sx={{ 
+                        display: 'flex', 
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}>
+                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                          Ciudad
                         </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          Carretera: {vehicle.consumption.highway}L/100km
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            color: theme.palette.primary.main,
+                            fontWeight: 600
+                          }}
+                        >
+                          {vehicle.consumption.city}L/100km
                         </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          Mixto: {vehicle.consumption.mixed}L/100km
+                      </Box>
+                      <Box sx={{ 
+                        display: 'flex', 
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}>
+                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                          Carretera
                         </Typography>
-                      </>
-                    ) : (
-                      <Typography variant="body2" color="text.secondary">
-                        Promedio: {vehicle.consumption}L/100km
-                      </Typography>
-                    )}
-                  </Box>
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            color: theme.palette.primary.main,
+                            fontWeight: 600
+                          }}
+                        >
+                          {vehicle.consumption.highway}L/100km
+                        </Typography>
+                      </Box>
+                      <Box sx={{ 
+                        display: 'flex', 
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}>
+                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                          Mixto
+                        </Typography>
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            color: theme.palette.primary.main,
+                            fontWeight: 600
+                          }}
+                        >
+                          {vehicle.consumption.mixed}L/100km
+                        </Typography>
+                      </Box>
+                    </Box>
+                  )}
                 </Box>
-              </CardContent>
 
-              <CardActions sx={{ justifyContent: 'flex-end', p: 2 }}>
-                <Tooltip title="Editar">
-                  <IconButton 
-                    size="small" 
+                <Box sx={{ 
+                  display: 'flex', 
+                  justifyContent: 'flex-end', 
+                  gap: 1, 
+                  mt: 2,
+                  pt: 2,
+                  borderTop: `1px solid ${theme.palette.divider}`
+                }}>
+                  <IconButton
                     onClick={() => handleEditVehicle(vehicle)}
-                    sx={{ 
+                    sx={{
+                      width: 36,
+                      height: 36,
+                      backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                      '&:hover': {
+                        backgroundColor: theme.palette.primary.main,
+                        '& svg': {
+                          color: 'white'
+                        }
+                      }
+                    }}
+                  >
+                    <EditIcon sx={{ 
+                      fontSize: 18,
                       color: theme.palette.primary.main,
-                      '&:hover': { backgroundColor: `${theme.palette.primary.main}10` }
-                    }}
-                  >
-                    <EditIcon fontSize="small" />
+                      transition: 'color 0.2s'
+                    }} />
                   </IconButton>
-                </Tooltip>
-                <Tooltip title="Eliminar">
-                  <IconButton 
-                    size="small"
+                  <IconButton
                     onClick={() => vehicle._id && handleDelete(vehicle._id)}
-                    sx={{ 
-                      color: theme.palette.error.main,
-                      '&:hover': { backgroundColor: `${theme.palette.error.main}10` }
+                    sx={{
+                      width: 36,
+                      height: 36,
+                      backgroundColor: alpha(theme.palette.error.main, 0.08),
+                      '&:hover': {
+                        backgroundColor: theme.palette.error.main,
+                        '& svg': {
+                          color: 'white'
+                        }
+                      }
                     }}
                   >
-                    <DeleteIcon fontSize="small" />
+                    <DeleteIcon sx={{ 
+                      fontSize: 18,
+                      color: theme.palette.error.main,
+                      transition: 'color 0.2s'
+                    }} />
                   </IconButton>
-                </Tooltip>
-              </CardActions>
+                </Box>
+              </Box>
             </Card>
           ))}
         </Box>

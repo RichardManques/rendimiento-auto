@@ -27,18 +27,16 @@ export interface Vehicle {
   model: string;
   brand: string;
   year: number;
-  plate: string;
-  isDefault: boolean;
-  transmission: string;
-  fuelType: string;
   engineSize: number;
+  fuelType: string;
+  transmission: string;
   consumption: {
     city: number;
     highway: number;
     mixed: number;
   };
+  isDefault: boolean;
   createdAt: Date;
-  updatedAt: Date;
 }
 
 export interface EfficiencyRecord {

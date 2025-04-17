@@ -54,7 +54,7 @@ const NewRecord: React.FC = () => {
             >
               {vehicles.map((vehicle) => (
                 <MenuItem key={vehicle._id} value={vehicle._id}>
-                  {vehicle.brand} {vehicle.model} - {vehicle.plate}
+                  {vehicle.brand} {vehicle.model}
                 </MenuItem>
               ))}
             </Select>

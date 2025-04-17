@@ -234,15 +234,6 @@ const RecentRecords: React.FC = () => {
               boxShadow: theme.shadows[2]
             }}
           >
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-                Últimos Registros
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Los 5 registros más recientes de tus cargas de combustible
-              </Typography>
-            </Box>
-            <Divider sx={{ mb: 3 }} />
             <FuelRecordList records={records} onDelete={handleDelete} />
           </Paper>
         </Stack>
