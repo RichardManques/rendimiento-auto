@@ -25,7 +25,7 @@ const Login = () => {
     if (isAuthenticated) {
       console.log('Usuario autenticado, redirigiendo al dashboard...');
       setTimeout(() => {
-        navigate('/', { replace: true });
+        navigate('/');
       }, 100); // Pequeño retraso para asegurar que el estado se ha actualizado
     }
   }, [isAuthenticated, navigate]);

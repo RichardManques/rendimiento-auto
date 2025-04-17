@@ -59,7 +59,7 @@ const FullHistory: React.FC = () => {
     <Container maxWidth="lg">
       <Box sx={{ mt: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom>
-          Historial Completo
+          Registro histórico de recargas
         </Typography>
         <Paper elevation={3}>
           <FuelRecordList records={paginatedRecords} onDelete={handleDelete} />

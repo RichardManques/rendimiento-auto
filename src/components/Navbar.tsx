@@ -23,6 +23,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useAuth } from '../contexts/AuthContext';
+import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 
 const StyledAppBar = styled(AppBar)(({ theme }) => ({
   backgroundColor: 'white',
@@ -64,6 +65,7 @@ const Navbar: React.FC = () => {
   const menuItems = [
     { text: 'Inicio', path: '/', icon: <HomeIcon /> },
     { text: 'Combustible', path: '/fuel-efficiency', icon: <LocalGasStationIcon /> },
+    { text: 'Vehículos', path: '/vehiculos', icon: <DirectionsCarIcon /> },
     { text: 'Historial', path: '/history', icon: <HistoryIcon /> },
   ];
 
@@ -112,16 +114,22 @@ const Navbar: React.FC = () => {
         </Typography>
       </Box>
       <Divider />
-      <MenuItem component={Link} to="/profile">
-        <PersonIcon fontSize="small" />
-        <Typography>Datos Personales</Typography>
-      </MenuItem>
-      <MenuItem component={Link} to="/settings">
+      <MenuItem 
+        onClick={() => {
+          handleProfileMenuClose();
+          window.location.href = '/settings';
+        }}
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1.5
+        }}
+      >
         <SettingsIcon fontSize="small" />
         <Typography>Perfil</Typography>
       </MenuItem>
       <Divider />
-      <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
+      <MenuItem onClick={handleLogout} sx={{ color: 'error.main', display: 'flex', alignItems: 'center', gap: 1.5 }}>
         <LogoutIcon fontSize="small" />
         <Typography>Cerrar Sesión</Typography>
       </MenuItem>
@@ -200,10 +208,16 @@ const Navbar: React.FC = () => {
         {menuItems.map((item) => (
           <MenuItem
             key={item.text}
-            component={Link}
-            to={item.path}
-            onClick={handleMobileMenuClose}
+            onClick={() => {
+              handleMobileMenuClose();
+              window.location.href = item.path;
+            }}
             selected={location.pathname === item.path}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.5
+            }}
           >
             {item.icon}
             <Typography>{item.text}</Typography>

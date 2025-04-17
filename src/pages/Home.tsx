@@ -34,9 +34,9 @@ const RecentRecords: React.FC = () => {
 
   const loadRecentRecords = async () => {
     try {
-      const data = await fuelService.getAllRecords();
-      const recentRecords = data
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      const records = await fuelService.getAllRecords();
+      const recentRecords = records
+        .sort((a: FuelRecord, b: FuelRecord) => new Date(b.date).getTime() - new Date(a.date).getTime())
         .slice(0, 5);
       setRecords(recentRecords);
     } catch (error) {
@@ -53,10 +53,11 @@ const RecentRecords: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (record: Omit<FuelRecord, 'id'>) => {
+  const handleSubmit = async (record: Omit<FuelRecord, '_id' | 'userId'>) => {
     try {
       await fuelService.createRecord(record);
       loadRecentRecords();
+      setIsModalOpen(false);
     } catch (error) {
       console.error('Error creating record:', error);
     }

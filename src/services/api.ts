@@ -94,12 +94,12 @@ export const fuelService = {
     try {
       const response = await axiosInstance.get('/fuel');
       
-      if (!response.data) {
+      if (!response.data || !response.data.data) {
         console.warn('No data received from API');
         return [];
       }
 
-      const records = response.data.map((record: any) => ({
+      const records = response.data.data.map((record: any) => ({
         ...record,
         _id: record._id || record.id,
         date: new Date(record.date)
@@ -112,16 +112,21 @@ export const fuelService = {
     }
   },
 
-  createRecord: async (record: Omit<FuelRecord, '_id'>): Promise<FuelRecord> => {
+  createRecord: async (record: Omit<FuelRecord, '_id' | 'userId'>): Promise<FuelRecord> => {
     try {
       const response = await axiosInstance.post('/fuel', {
         ...record,
         date: record.date || new Date().toISOString(),
       });
+
+      if (!response.data || !response.data.data) {
+        throw new Error('Invalid response format from server');
+      }
+
       return {
-        ...response.data,
-        _id: response.data._id || response.data.id,
-        date: new Date(response.data.date)
+        ...response.data.data,
+        _id: response.data.data._id || response.data.data.id,
+        date: new Date(response.data.data.date)
       };
     } catch (error) {
       console.error('Error creating record:', error);
@@ -129,13 +134,18 @@ export const fuelService = {
     }
   },
 
-  updateRecord: async (id: string, record: Partial<FuelRecord>): Promise<FuelRecord> => {
+  updateRecord: async (id: string, record: Partial<Omit<FuelRecord, '_id' | 'userId'>>): Promise<FuelRecord> => {
     try {
       const response = await axiosInstance.put(`/fuel/${id}`, record);
+
+      if (!response.data || !response.data.data) {
+        throw new Error('Invalid response format from server');
+      }
+
       return {
-        ...response.data,
-        _id: response.data._id || response.data.id,
-        date: new Date(response.data.date)
+        ...response.data.data,
+        _id: response.data.data._id || response.data.data.id,
+        date: new Date(response.data.data.date)
       };
     } catch (error) {
       console.error('Error updating record:', error);
@@ -145,7 +155,10 @@ export const fuelService = {
 
   deleteRecord: async (id: string): Promise<void> => {
     try {
-      await axiosInstance.delete(`/fuel/${id}`);
+      const response = await axiosInstance.delete(`/fuel/${id}`);
+      if (!response.data || !response.data.success) {
+        throw new Error('Failed to delete record');
+      }
     } catch (error) {
       console.error('Error deleting record:', error);
       throw error;
@@ -247,4 +260,6 @@ export const api: Api = {
       return response.json();
     },
   },
-}; 
+};
+
+export default axiosInstance; 

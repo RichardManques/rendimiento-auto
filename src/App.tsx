@@ -1,12 +1,14 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { CssBaseline, ThemeProvider, createTheme, Box } from '@mui/material';
+import { SnackbarProvider } from 'notistack';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import FuelEfficiency from './pages/FuelEfficiency';
 import FullHistory from './pages/FullHistory';
+import Vehicles from './pages/Vehicles';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 const theme = createTheme({
@@ -60,6 +62,7 @@ const AppRoutes: React.FC = () => {
           <Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
           <Route path="/fuel-efficiency" element={<PrivateRoute><FuelEfficiency /></PrivateRoute>} />
           <Route path="/history" element={<PrivateRoute><FullHistory /></PrivateRoute>} />
+          <Route path="/vehiculos" element={<PrivateRoute><Vehicles /></PrivateRoute>} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </Box>
@@ -72,9 +75,17 @@ const App: React.FC = () => {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <AuthProvider>
-        <Router>
-          <AppRoutes />
-        </Router>
+        <SnackbarProvider 
+          maxSnack={3}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right',
+          }}
+        >
+          <Router>
+            <AppRoutes />
+          </Router>
+        </SnackbarProvider>
       </AuthProvider>
     </ThemeProvider>
   );

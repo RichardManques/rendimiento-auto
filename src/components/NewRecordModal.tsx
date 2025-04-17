@@ -1,33 +1,60 @@
 import React from 'react';
 import {
   Dialog,
-  DialogTitle,
   DialogContent,
-  DialogActions,
   Button,
   TextField,
   Box,
   IconButton,
   Typography,
-  useTheme
+  useTheme,
+  Paper,
+  InputAdornment,
+  Slide
 } from '@mui/material';
+import { TransitionProps } from '@mui/material/transitions';
 import CloseIcon from '@mui/icons-material/Close';
+import LocalGasStationIcon from '@mui/icons-material/LocalGasStation';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import { FuelRecord } from '../types';
-import { useState } from 'react';
+import { useState, useEffect, forwardRef } from 'react';
+
+const Transition = forwardRef(function Transition(
+  props: TransitionProps & {
+    children: React.ReactElement;
+  },
+  ref: React.Ref<unknown>,
+) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
 
 interface NewRecordModalProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (record: Omit<FuelRecord, '_id'>) => void;
+  onSubmit: (record: Omit<FuelRecord, '_id' | 'userId'>) => void;
+  selectedVehicle?: { _id: string };
 }
 
-const NewRecordModal: React.FC<NewRecordModalProps> = ({ open, onClose, onSubmit }) => {
+const NewRecordModal: React.FC<NewRecordModalProps> = ({ open, onClose, onSubmit, selectedVehicle }) => {
   const theme = useTheme();
   const [formData, setFormData] = useState({
     pricePerLiter: '',
-    totalLiters: '',
-    stationName: ''
+    totalAmount: '',
+    gasStation: '',
+    location: ''
   });
+
+  const [calculatedLiters, setCalculatedLiters] = useState<number>(0);
+
+  useEffect(() => {
+    if (Number(formData.pricePerLiter) > 0 && Number(formData.totalAmount) > 0) {
+      const liters = Number(formData.totalAmount) / Number(formData.pricePerLiter);
+      setCalculatedLiters(Number(liters.toFixed(1)));
+    } else {
+      setCalculatedLiters(0);
+    }
+  }, [formData.pricePerLiter, formData.totalAmount]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -35,6 +62,27 @@ const NewRecordModal: React.FC<NewRecordModalProps> = ({ open, onClose, onSubmit
       ...prev,
       [name]: value
     }));
+  };
+
+  const handleSubmit = () => {
+    const now = new Date();
+    const record: Omit<FuelRecord, '_id' | 'userId'> = {
+      date: now,
+      pricePerLiter: Number(formData.pricePerLiter),
+      liters: calculatedLiters,
+      totalCost: Number(formData.totalAmount),
+      gasStation: formData.gasStation,
+      location: formData.location
+    };
+
+    onSubmit(record);
+    onClose();
+    setFormData({
+      pricePerLiter: '',
+      totalAmount: '',
+      gasStation: '',
+      location: ''
+    });
   };
 
   const formatCurrency = (amount: number) => {
@@ -45,123 +93,193 @@ const NewRecordModal: React.FC<NewRecordModalProps> = ({ open, onClose, onSubmit
     }).format(amount);
   };
 
-  const calculateTotal = () => {
-    const price = Number(formData.pricePerLiter);
-    const liters = Number(formData.totalLiters);
-    const total = price * liters;
-    console.log('Calculando total:', { price, liters, total });
-    return total;
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const totalCost = calculateTotal();
-    
-    const record: Omit<FuelRecord, '_id'> = {
-      pricePerLiter: Number(formData.pricePerLiter),
-      liters: Number(formData.totalLiters),
-      totalCost: totalCost,
-      date: new Date(),
-      gasStation: formData.stationName,
-      location: 'Santiago, Chile' // Valor por defecto
-    };
-
-    console.log('Enviando registro:', record);
-    onSubmit(record);
-    onClose();
-    setFormData({ pricePerLiter: '', totalLiters: '', stationName: '' });
-  };
+  const showTotal = Number(formData.pricePerLiter) > 0 && Number(formData.totalAmount) > 0;
 
   return (
     <Dialog 
       open={open} 
       onClose={onClose}
-      maxWidth="sm"
+      maxWidth="xs"
       fullWidth
+      TransitionComponent={Transition}
       PaperProps={{
         sx: {
-          borderRadius: 2,
-          p: 2
+          borderRadius: 3,
+          overflow: 'hidden',
+          width: '400px',
+          margin: 'auto',
+          bgcolor: 'background.default'
         }
       }}
     >
-      <DialogTitle sx={{ m: 0, p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
-          Nuevo Registro de Combustible
-        </Typography>
-        <IconButton
-          aria-label="close"
+      <Box sx={{ position: 'relative' }}>
+        <IconButton 
           onClick={onClose}
-          sx={{
-            color: theme.palette.grey[500],
+          sx={{ 
+            position: 'absolute',
+            right: 8,
+            top: 8,
+            color: 'text.secondary'
           }}
         >
           <CloseIcon />
         </IconButton>
-      </DialogTitle>
-      <form onSubmit={handleSubmit}>
-        <DialogContent dividers>
-          <Box sx={{ display: 'grid', gap: 2 }}>
-            <TextField
-              label="Precio por Litro"
-              name="pricePerLiter"
-              type="number"
-              value={formData.pricePerLiter}
-              onChange={handleInputChange}
-              required
-              fullWidth
-              InputProps={{
-                startAdornment: <Typography color="textSecondary">$</Typography>
-              }}
-            />
-            
-            <TextField
-              label="Litros Cargados"
-              name="totalLiters"
-              type="number"
-              value={formData.totalLiters}
-              onChange={handleInputChange}
-              required
-              fullWidth
-              InputProps={{
-                endAdornment: <Typography color="textSecondary">L</Typography>
-              }}
-            />
-            
-            <TextField
-              label="Nombre de la Estación"
-              name="stationName"
-              value={formData.stationName}
-              onChange={handleInputChange}
-              required
-              fullWidth
-            />
 
-            {(Number(formData.pricePerLiter) > 0 && Number(formData.totalLiters) > 0) && (
-              <Box sx={{ 
-                bgcolor: 'primary.light', 
-                p: 2, 
-                borderRadius: 1,
-                color: 'white',
-                textAlign: 'center'
-              }}>
-                <Typography variant="subtitle2">Total Estimado</Typography>
-                <Typography variant="h4">
-                  {formatCurrency(calculateTotal())}
+        <DialogContent sx={{ p: 0 }}>
+          <Box sx={{ p: 3, pb: 0 }}>
+            <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
+              Nueva Recarga
+            </Typography>
+          </Box>
+
+          {showTotal && (
+            <Box sx={{ px: 3 }}>
+              <Paper 
+                elevation={0}
+                sx={{ 
+                  bgcolor: theme.palette.primary.main,
+                  color: 'white',
+                  p: 3,
+                  borderRadius: 3,
+                  textAlign: 'center',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  mb: 3
+                }}
+              >
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    right: -20,
+                    top: -20,
+                    opacity: 0.1,
+                    transform: 'rotate(25deg)'
+                  }}
+                >
+                  <AttachMoneyIcon sx={{ fontSize: 150 }} />
+                </Box>
+                <Typography variant="h3" sx={{ fontWeight: 700, mb: 1 }}>
+                  {formatCurrency(Number(formData.totalAmount))}
                 </Typography>
-              </Box>
-            )}
+                <Typography variant="body1" sx={{ opacity: 0.9 }}>
+                  Equivale a {calculatedLiters.toFixed(1)} litros
+                </Typography>
+                <Typography variant="caption" sx={{ opacity: 0.7, display: 'block' }}>
+                  a {formatCurrency(Number(formData.pricePerLiter))}/L cada litro
+                </Typography>
+              </Paper>
+            </Box>
+          )}
+
+          <Box sx={{ px: 3 }}>
+            <Box sx={{ 
+              display: 'grid',
+              gap: 2.5,
+              mb: 3
+            }}>
+              <TextField
+                placeholder="Ingresa el precio por litro"
+                name="pricePerLiter"
+                type="number"
+                value={formData.pricePerLiter}
+                onChange={handleInputChange}
+                required
+                size="small"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Typography color="text.secondary">$</Typography>
+                    </InputAdornment>
+                  )
+                }}
+              />
+              <TextField
+                placeholder="¿Cuánto pagaste en total?"
+                name="totalAmount"
+                type="number"
+                value={formData.totalAmount}
+                onChange={handleInputChange}
+                required
+                size="small"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Typography color="text.secondary">$</Typography>
+                    </InputAdornment>
+                  )
+                }}
+              />
+              <TextField
+                placeholder="¿En qué estación cargaste?"
+                name="gasStation"
+                value={formData.gasStation}
+                onChange={handleInputChange}
+                required
+                size="small"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LocalGasStationIcon color="action" fontSize="small" />
+                    </InputAdornment>
+                  )
+                }}
+              />
+              <TextField
+                placeholder="¿Dónde queda la estación?"
+                name="location"
+                value={formData.location}
+                onChange={handleInputChange}
+                required
+                size="small"
+                helperText="Ejemplo: Santiago, Las Condes"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <LocationOnIcon color="action" fontSize="small" />
+                    </InputAdornment>
+                  )
+                }}
+              />
+            </Box>
+          </Box>
+
+          <Box sx={{ 
+            p: 3, 
+            pt: 0,
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: 2
+          }}>
+            <Button 
+              onClick={onClose}
+              variant="outlined"
+              fullWidth
+              sx={{ 
+                borderRadius: 2,
+                py: 1,
+                textTransform: 'none',
+                fontWeight: 600
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleSubmit}
+              variant="contained"
+              fullWidth
+              disabled={!formData.pricePerLiter || !formData.totalAmount || !formData.gasStation || !formData.location}
+              sx={{ 
+                borderRadius: 2,
+                py: 1,
+                textTransform: 'none',
+                fontWeight: 600
+              }}
+            >
+              Guardar
+            </Button>
           </Box>
         </DialogContent>
-        <DialogActions sx={{ px: 3, py: 2, gap: 1 }}>
-          <Button onClick={onClose} variant="outlined">
-            Cancelar
-          </Button>
-          <Button type="submit" variant="contained" color="primary">
-            Guardar Registro
-          </Button>
-        </DialogActions>
-      </form>
+      </Box>
     </Dialog>
   );
 };

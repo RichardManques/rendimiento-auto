@@ -9,14 +9,16 @@ import {
 import { FuelRecord } from '../types';
 
 interface FuelRecordFormProps {
-  onSubmit: (record: Omit<FuelRecord, 'id'>) => void;
+  onSubmit: (record: Omit<FuelRecord, '_id' | 'userId'>) => void;
+  vehicleId: string;
 }
 
-const FuelRecordForm: React.FC<FuelRecordFormProps> = ({ onSubmit }) => {
+const FuelRecordForm: React.FC<FuelRecordFormProps> = ({ onSubmit, vehicleId }) => {
   const [formData, setFormData] = useState({
     pricePerLiter: '',
     liters: '',
-    gasStation: ''
+    gasStation: '',
+    location: ''
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -31,12 +33,13 @@ const FuelRecordForm: React.FC<FuelRecordFormProps> = ({ onSubmit }) => {
     e.preventDefault();
     const totalCost = Number(formData.pricePerLiter) * Number(formData.liters);
     
-    const record: Omit<FuelRecord, 'id'> = {
+    const record: Omit<FuelRecord, '_id' | 'userId'> = {
       date: new Date(),
       liters: Number(formData.liters),
       pricePerLiter: Number(formData.pricePerLiter),
       totalCost,
-      gasStation: formData.gasStation
+      gasStation: formData.gasStation,
+      location: formData.location
     };
 
     onSubmit(record);
@@ -74,6 +77,17 @@ const FuelRecordForm: React.FC<FuelRecordFormProps> = ({ onSubmit }) => {
         onChange={handleInputChange}
         margin="normal"
         required
+      />
+
+      <TextField
+        fullWidth
+        label="Ubicación"
+        name="location"
+        value={formData.location}
+        onChange={handleInputChange}
+        margin="normal"
+        required
+        helperText="Ejemplo: Santiago, Las Condes"
       />
 
       <Button 
