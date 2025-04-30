@@ -1,92 +1,67 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { CssBaseline, ThemeProvider, createTheme, Box } from '@mui/material';
-import { SnackbarProvider } from 'notistack';
+import React, { useState } from 'react';
+import { BrowserRouter } from 'react-router-dom';
+import { ThemeProvider, CssBaseline, Box } from '@mui/material';
+import { AuthProvider } from './contexts/AuthContext';
+import AppRoutes from './routes/AppRoutes';
 import Navbar from './components/Navbar';
-import Home from './pages/Home';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import FuelEfficiency from './pages/FuelEfficiency';
-import FullHistory from './pages/FullHistory';
-import Vehicles from './pages/Vehicles';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import createCustomTheme from './theme/theme';
+import { SnackbarProvider } from 'notistack';
+import '@fontsource/inter';
+import './styles/globals.css';
+import { useLocation } from 'react-router-dom';
 
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#1976d2',
-    },
-    secondary: {
-      main: '#dc004e',
-    },
-  },
-});
-
-const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+const AppContent: React.FC<{ mode: 'light' | 'dark', toggleTheme: () => void }> = ({ mode, toggleTheme }) => {
   const location = useLocation();
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
 
-  if (isLoading) {
-    // Puedes mostrar un spinner o loading aquí si lo deseas
-    return null;
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
-
-  return <>{children}</>;
-};
-
-const AppRoutes: React.FC = () => {
-  const token = localStorage.getItem('token');
-  const location = useLocation();
-
-  // Si estamos en login o register, no mostrar el navbar
-  if (location.pathname === '/login' || location.pathname === '/register') {
-    return (
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="*" element={<Navigate to="/login" />} />
-      </Routes>
-    );
-  }
-
-  // Para rutas protegidas, mostrar el navbar
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-      <Navbar />
-      <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
-        <Routes>
-          <Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
-          <Route path="/fuel-efficiency" element={<PrivateRoute><FuelEfficiency /></PrivateRoute>} />
-          <Route path="/history" element={<PrivateRoute><FullHistory /></PrivateRoute>} />
-          <Route path="/vehiculos" element={<PrivateRoute><Vehicles /></PrivateRoute>} />
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        background: theme => theme.palette.background.default,
+        transition: 'background-color 0.3s ease-in-out',
+      }}
+    >
+      {!isAuthPage && <Navbar onThemeToggle={toggleTheme} currentTheme={mode} />}
+      <Box
+        component="main"
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: isAuthPage ? '100vh' : 'calc(100vh - 64px)',
+        }}
+      >
+        <AppRoutes />
       </Box>
     </Box>
   );
 };
 
 const App: React.FC = () => {
+  const [mode, setMode] = useState<'light' | 'dark'>('light');
+  const theme = React.useMemo(() => createCustomTheme(mode), [mode]);
+
+  const toggleTheme = () => {
+    setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'));
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <AuthProvider>
-        <SnackbarProvider 
-          maxSnack={3}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'right',
-          }}
-        >
-          <Router>
-            <AppRoutes />
-          </Router>
-        </SnackbarProvider>
-      </AuthProvider>
+      <SnackbarProvider 
+        maxSnack={3}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        autoHideDuration={3000}
+      >
+        <AuthProvider>
+          <BrowserRouter>
+            <AppContent mode={mode} toggleTheme={toggleTheme} />
+          </BrowserRouter>
+        </AuthProvider>
+      </SnackbarProvider>
     </ThemeProvider>
   );
 };

@@ -3,17 +3,16 @@ import {
   Container, 
   Typography, 
   Box,
-  TablePagination,
-  Paper
+  useTheme,
+  alpha,
 } from '@mui/material';
 import { FuelRecord } from '../types';
 import { fuelService } from '../services/api';
-import FuelRecordList from '../components/FuelRecordList';
+import FuelRecordTable from '../components/FuelRecordTable';
 
 const FullHistory: React.FC = () => {
+  const theme = useTheme();
   const [records, setRecords] = useState<FuelRecord[]>([]);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   useEffect(() => {
     loadRecords();
@@ -41,43 +40,14 @@ const FullHistory: React.FC = () => {
     }
   };
 
-  const handleChangePage = (event: unknown, newPage: number) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
-  const paginatedRecords = records.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
-  );
-
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ mt: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Registro histórico de recargas
-        </Typography>
-        <Paper elevation={3}>
-          <FuelRecordList records={paginatedRecords} onDelete={handleDelete} />
-          <TablePagination
-            component="div"
-            count={records.length}
-            page={page}
-            onPageChange={handleChangePage}
-            rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-            labelRowsPerPage="Registros por página"
-            labelDisplayedRows={({ from, to, count }) => 
-              `${from}-${to} de ${count}`
-            }
-          />
-        </Paper>
-      </Box>
-    </Container>
+    <Box sx={{ mt: 6, mb: 6 }}>
+      <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
+        <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
+        </Box>
+        <FuelRecordTable records={records} onDelete={handleDelete} />
+      </Container>
+    </Box>
   );
 };
 
